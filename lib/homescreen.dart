@@ -1,42 +1,39 @@
 import 'package:flutter/material.dart';
-import 'adduser.dart';
+import 'package:lottie/lottie.dart';
+import 'contact_model.dart';
+import 'log_in.dart';
 
 class Homescreen extends StatefulWidget {
-  final String userName;
-  final String userEmail;
-  final String userPhone;
+  final ContactModel? initialUser;
 
-  const Homescreen({
-    super.key,
-    required this.userName,
-    required this.userEmail,
-    required this.userPhone,
-  });
+  const Homescreen({super.key, this.initialUser});
 
   @override
   State<Homescreen> createState() => _HomescreenState();
 }
 
 class _HomescreenState extends State<Homescreen> {
-  List<Map<String, String>> users = [];
+  List<Map<String, dynamic>> users = [];
 
   @override
   void initState() {
     super.initState();
-    users.add({
-      'name': widget.userName,
-      'email': widget.userEmail,
-      'phone': widget.userPhone,
+    if (widget.initialUser != null) {
+      users.add({
+        'name': widget.initialUser!.name,
+        'email': widget.initialUser!.email,
+        'phone': widget.initialUser!.phone,
+        'image': widget.initialUser!.image,
+      });
+    }
+  }
+
+  void deleteAllUsers() {
+    setState(() {
+      users.clear();
     });
   }
 
-  void deleteLastUser() {
-    setState(() {
-      if (users.isNotEmpty) {
-        users.removeLast();
-      }
-    });
-  }
 
   void deleteUser(int index) {
     setState(() {
@@ -44,11 +41,43 @@ class _HomescreenState extends State<Homescreen> {
     });
   }
 
-  void addUser(Map<String, String> newUser) {
+
+  void addUser(Map<String, dynamic> newUser) {
     setState(() {
       users.add(newUser);
     });
   }
+  void _showLoginBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Login(
+              onUserAdded: (ContactModel newUser) {
+                setState(() {
+                  users.add({
+                    'name': newUser.name,
+                    'email': newUser.email,
+                    'phone': newUser.phone,
+                    'image': newUser.image,
+                  });
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -58,125 +87,160 @@ class _HomescreenState extends State<Homescreen> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             FloatingActionButton(
-              onPressed: deleteLastUser,
-              backgroundColor: Color(0xffF93E3E),
-              child: Icon(Icons.delete, color: Colors.white),
+              onPressed: deleteAllUsers,
+              backgroundColor: const Color(0xffF93E3E),
+              child: const Icon(Icons.delete, color: Colors.white),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             FloatingActionButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddNewUser()),
-                );
-                if (result != null) {
-                  addUser(result);
-                }
+              onPressed: ()  {
+                _showLoginBottomSheet(context);
+
               },
               child: const Icon(Icons.add),
             ),
           ],
         ),
         backgroundColor: const Color(0xff29384D),
-        body: ListView.builder(
-          itemCount: users.length,
-          itemBuilder: (context, index) {
-            return Row(
-              children: [
-                Container(
-                  margin: const EdgeInsets.all(10),
-                  height: 250,
-                  width: 220,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xffFFF1D4)),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Stack(
-                    children: [
-                      Image.asset(
-                        "assets/images/pic3.gif",
-                        width: double.infinity,
-                        height: 100,
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(top: 80, left: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.white,
-                        ),
-                        padding: const EdgeInsets.all(10),
-                        child: Text(
-                          users[index]['name'] ?? '',
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                      ),
-                      Container(
-                        color: Colors.white,
-                        margin: const EdgeInsets.only(top: 130),
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.messenger_outlined,
-                                  color: Color(0xff29384D),
-                                ),
-                                Text(
-                                  "  ${users[index]['email'] ?? ''}",
-                                  style: const TextStyle(fontSize: 10),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.phone,
-                                  color: Color(0xff29384D),
-                                ),
-                                Text(
-                                  "  ${users[index]['phone'] ?? ''}",
-                                  style: const TextStyle(fontSize: 10),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(
-                            top: 200, left: 10, bottom: 10, right: 10),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            deleteUser(index);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xffF93E3E),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.asset(
+                "assets/images/pic1.png",
+                width: 117,
+                height: 39,
+              ),
+            ),
+
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 0.60,
+                ),
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                  final user = users[index];
+                  return Container(
+                    margin: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffFFF1D4)),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Stack(
+                      children: [
+                        user['image'] != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(
+                            user['image'],
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
                           ),
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 20),
-                              Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                              ),
-                              Text(
-                                "Delete",
-                                style: TextStyle(
+                        )
+                            : Lottie.asset("assets/animations/empty_list.json"),
+                              Container(
+                                margin: const EdgeInsets.only(top: 130, left: 10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
                                   color: Colors.white,
+                                ),
+                                padding: const EdgeInsets.all(10),
+                                child: Text(
+                                  user['name'],
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xff29384D),
+                                    fontWeight: FontWeight.w500
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                      bottomRight: Radius.circular(16),
+                                      bottomLeft: Radius.circular(16))
+                                ),
+                                margin: const EdgeInsets.only(top: 180),
+                                padding: const EdgeInsets.all(10),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.email_rounded),
+                                        Text(
+                                          "  ${user['email']}",
+                                          style: const TextStyle(
+                                              fontSize: 15,
+                                              overflow: TextOverflow.ellipsis,
+                                              color: Color(0xff29384D),
+                                              fontWeight: FontWeight.w500
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.phone_in_talk_sharp),
+                                        Text(
+                                          "  ${user['phone']}",
+                                          style: const TextStyle(
+                                              fontSize: 15,
+                                              overflow: TextOverflow.ellipsis,
+                                              color: Color(0xff29384D),
+                                              fontWeight: FontWeight.w500
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              Container(
+                                alignment: Alignment.center,
+                                margin:  EdgeInsets.only(
+                                    top: 250, left: 10, bottom: 0, right: 10),
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    deleteUser(index);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xffF93E3E),
+                                  ),
+                                  child:  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.delete, color: Colors.white,
+                                      size: 25,),
+                                      SizedBox(width: 2),
+                                      Text(
+                                        "Delete",
+                                        style: TextStyle(color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 20),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
+
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
