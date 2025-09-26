@@ -74,7 +74,7 @@ class _AddNewUserState extends State<AddNewUser> {
               ),
               Column(
                 children: [
-                  Lottie.asset("assets/animations/image_picker.json",
+                  Lottie.asset("assets/animations/empty_list.json",
                   height: 460,
                   width: 360),
                   const Text(
